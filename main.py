@@ -23,10 +23,13 @@ def get_tts():
                     gpu=torch.cuda.is_available())
     try:
         SPEAKERS = list(tts_model.synthesizer.tts_model.speaker_manager.name_to_id.keys())
-    except:
-        SPEAKERS = ["default"]
-    SPEAKER = SPEAKERS[2] if len(SPEAKERS) > 2 else SPEAKERS[0]
-    print(f"✅ Modèle prêt — Speaker : {SPEAKER}")
+        print(f"✅ Speakers trouvés : {SPEAKERS}")
+    except Exception as e:
+        print(f"⚠️ Impossible de récupérer les speakers : {e}")
+        SPEAKERS = []
+
+    SPEAKER = SPEAKERS[2] if len(SPEAKERS) > 2 else (SPEAKERS[0] if SPEAKERS else None)
+    print(f"✅ Speaker sélectionné : {SPEAKER}")
     return tts_model
 
 def preparer_texte(texte: str, langue: str = "fr") -> str:
