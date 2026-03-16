@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+TTS
+num2words
+torch
+pydantic
+cn2an
+pypinyin
+jieba
+unidic-lite
+mecab-python3
+pykakasi
+g2p_en
+anyascii
+jamo
