@@ -13,6 +13,7 @@ tts_model = None
 SPEAKERS  = []
 SPEAKER   = None
 
+
 def get_tts():
     global tts_model, SPEAKERS, SPEAKER
     if tts_model is not None:
@@ -21,15 +22,31 @@ def get_tts():
     print("⏳ Chargement du modèle TTS...")
     tts_model = TTS("tts_models/multilingual/multi-dataset/xtts_v2",
                     gpu=torch.cuda.is_available())
+
+    # ── Essayer toutes les méthodes pour récupérer les speakers ──────────────
     try:
         SPEAKERS = list(tts_model.synthesizer.tts_model.speaker_manager.name_to_id.keys())
-        print(f"✅ Speakers trouvés : {SPEAKERS}")
-    except Exception as e:
-        print(f"⚠️ Impossible de récupérer les speakers : {e}")
-        SPEAKERS = []
+        print(f"✅ Méthode 1 : {SPEAKERS}")
+    except:
+        try:
+            SPEAKERS = list(tts_model.synthesizer.tts_model.speaker_manager.speakers.keys())
+            print(f"✅ Méthode 2 : {SPEAKERS}")
+        except:
+            try:
+                SPEAKERS = tts_model.synthesizer.tts_model.speaker_manager.speaker_names
+                print(f"✅ Méthode 3 : {SPEAKERS}")
+            except:
+                try:
+                    # Forcer via hps
+                    SPEAKERS = list(tts_model.synthesizer.tts_model.hps.data.spk2id.keys())
+                    print(f"✅ Méthode 4 : {SPEAKERS}")
+                except Exception as e:
+                    print(f"❌ Impossible : {e}")
+                    SPEAKERS = []
 
-    SPEAKER = SPEAKERS[2] if len(SPEAKERS) > 2 else (SPEAKERS[0] if SPEAKERS else None)
+    SPEAKER = SPEAKERS[0] if SPEAKERS else None
     print(f"✅ Speaker sélectionné : {SPEAKER}")
+    print(f"✅ Tous les speakers   : {SPEAKERS}")
     return tts_model
 
 def preparer_texte(texte: str, langue: str = "fr") -> str:
