@@ -81,26 +81,37 @@ def load_model():
 @app.post("/save_audio_wav_oeuvre")
 def save_audio_wav_oeuvre(req: BatchRequest):
     tts     = get_tts()
-    speaker = SPEAKERS[req.speaker_index] if req.speaker_index < len(SPEAKERS) else SPEAKER
+    speaker = SPEAKERS[0] if SPEAKERS else None
     resultats = []
 
     for entree in req.entrees:
-        filename     = entree.filename.replace(".wav", "") + ".wav"
-        path         = os.path.join(AUDIO_DIR, filename)
-        texte_propre = preparer_texte(entree.texte, req.langue)
+        # entree.filename = "3/titre"
+        filename     = entree.filename.replace(".wav", "") + ".wav"  # "3/titre.wav"
+        path         = os.path.join(AUDIO_DIR, filename)             # /workspace/audios/3/titre.wav
+
+        # Créer le sous-dossier si nécessaire
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+        texte_propre = preparer_texte(entree.texte, entree.filename, req.langue)
+        print(f"🎙️ {filename} → {texte_propre}")
 
         try:
-            tts.tts_to_file(
-                text      = texte_propre,
-                language  = req.langue,
-                speaker   = speaker,
-                file_path = path
-            )
+            kwargs = {
+                "text"     : texte_propre,
+                "language" : req.langue,
+                "file_path": path
+            }
+            if speaker:
+                kwargs["speaker"] = speaker
+
+            tts.tts_to_file(**kwargs)
+
             with open(path, "rb") as f:
                 audio_b64 = base64.b64encode(f.read()).decode("utf-8")
 
             resultats.append({
                 "filename" : filename,
+                "texte_lu" : texte_propre,
                 "audio_b64": audio_b64,
                 "status"   : "ok"
             })
